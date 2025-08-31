@@ -19,7 +19,9 @@ app.use(express.json({ limit: "16kb" }));
 app.use(express.urlencoded({ limit: "16kb", extended: true }));
 
 // To sanitize input(mongodb operators or queries especially)
-app.use(mongoSanitize());
+// app.use(mongoSanitize());
+// The above is causing errors because it is trying to modify req object which is read only in express 5 and the error is:
+// {"success":false,"message":"Cannot set property query of #<IncomingMessage> which has only a getter"}
 
 // Serves static files from the public folder
 app.use(express.static("public"));
