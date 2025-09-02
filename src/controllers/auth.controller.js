@@ -64,4 +64,70 @@ const registerUser = asyncHandler(async (req, res, next) => {
     .json(new ApiResponse(201, isUserCreated, "User registered successfully"));
 });
 
-export { registerUser };
+// Login user
+const loginUser = asyncHandler(async (req, res, next) => {
+  const { email, password } = req.body;
+
+  const isUserExists = await User.findOne({ email });
+
+  if (!isUserExists) {
+    return next(new ApiError(404, "User does not exist or Invalid email"));
+  }
+
+  const isPasswordValid = await isUserExists.isPasswordCorrect(password);
+
+  if (!isPasswordValid) {
+    return next(new ApiError(401, "Invalid email or password"));
+  }
+
+  const { accessToken, refreshToken } = await generateTokens(isUserExists._id);
+
+  const loggedInUser = await User.findById(isUserExists._id).select(
+    "-password -refreshToken"
+  );
+
+  const accessTokenOptions = {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "None",
+    maxAge: 1 * 24 * 60 * 60 * 1000,
+  };
+
+  const refreshTokenOptions = {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "None",
+    maxAge: 10 * 24 * 60 * 60 * 1000,
+  };
+
+  res
+    .status(200)
+    .cookie("AccessToken", accessToken, accessTokenOptions)
+    .cookie("RefreshToken", refreshToken, refreshTokenOptions)
+    .json(new ApiResponse(200, loggedInUser, "User logged in successfully"));
+});
+
+// Logout user
+const logoutUser = asyncHandler(async (req, res, next) => {
+  await User.findByIdAndUpdate(req.user._id, { $unset: { refreshToken: 1 } });
+
+  const cookieOptions = {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "None",
+  };
+
+  return res
+    .status(200)
+    .clearCookie("AccessToken", cookieOptions)
+    .clearCookie("RefreshToken", cookieOptions)
+    .json(
+      new ApiResponse(
+        200,
+        {},
+        `User: ${req.user.username} logged out successfully`
+      )
+    );
+});
+
+export { registerUser, loginUser, logoutUser };
