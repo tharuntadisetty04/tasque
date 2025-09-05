@@ -48,9 +48,20 @@ app.get("/", (req, res) => {
 
 // Router imports
 import authRouter from "./routes/auth.routes.js";
+import userRoutes from "./routes/user.routes.js";
 
 // Auth route
 app.use("/api/v1/auth", authRouter);
+
+// User route
+app.use("/api/v1/users", userRoutes);
+
+// 404 for unknown routes
+app.use((req, res, next) => {
+  const error = new Error(`Not Found - ${req.originalUrl}`);
+  error.statusCode = 404;
+  next(error);
+});
 
 // Global error handler
 app.use(errorHandler);

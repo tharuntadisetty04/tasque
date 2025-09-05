@@ -9,7 +9,7 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
       minLength: 3,
-      maxLength: 30,
+      maxLength: 50,
       trim: true,
       lowercase: true,
     },
@@ -22,8 +22,7 @@ const userSchema = new mongoose.Schema(
         validator: function (val) {
           if (!validator.isEmail(val)) return false;
           const allowedDomains = ["gmail.com", "yahoo.com", "outlook.com"];
-          const domain = val.split("@")[1];
-          return allowedDomains.includes(domain);
+          return allowedDomains.includes(val.split("@")[1]);
         },
         message: "Email must be a valid Gmail, Yahoo, or Outlook address",
       },
@@ -32,6 +31,7 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
       minLength: 8,
+      maxLength: 50,
     },
     role: {
       type: String,

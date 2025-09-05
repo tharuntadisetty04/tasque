@@ -29,3 +29,11 @@ export const verifyJWT = asyncHandler(async (req, res, next) => {
     return next(new ApiError(401, error?.message || "Invalid Access token"));
   }
 });
+
+export const verifyAdmin = asyncHandler(async (req, res, next) => {
+  if (!req.user || req.user.role !== "admin") {
+    return next(new ApiError(403, "Admin access required"));
+  }
+
+  next();
+});
